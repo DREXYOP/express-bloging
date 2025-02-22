@@ -1,7 +1,9 @@
 import prisma from "@/globals";
+import { comparePasswords, generateToken, hashPassword } from "@/tools/auth.tools";
 import { checkExistingUser } from "@/tools/user.tools";
 import { user } from "@prisma/client";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export async function signup(
   name: string,
@@ -13,7 +15,7 @@ export async function signup(
     if (exists) {
       throw new Error("User already exists");
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hashPassword(password);
     const user = await prisma.user.create({
       data: {
         name: name,
@@ -31,7 +33,7 @@ export async function login(
   _name: string,
   email: string,
   password: string
-): Promise<user> {
+): Promise<string> {
     try {
         const user = await prisma.user.findUnique({
         where: {
@@ -41,11 +43,12 @@ export async function login(
         if (!user) {
         throw new Error("User not found");
         }
-        const valid = await bcrypt.compare(password, user.password);
+        const valid = await comparePasswords(password, user.password);
         if (!valid) {
-        throw new Error("Invalid password");
+        throw new Error("Invalid credentials");
         }
-        return user;
+        const token = generateToken(user);
+        return token;
     } catch (error) {
         throw error;
     }

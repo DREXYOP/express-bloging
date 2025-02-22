@@ -14,22 +14,27 @@ datasource db {
 }
 
 model user {
-  id        String   @id @map("_id") @default(uuid())
-  email     String   @unique
+  id        String    @id @default(uuid()) @map("_id")
+  email     String    @unique
   name      String
   password  String
   blogs     blog[]
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role      userRoles @default(USER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model blog {
-  id        String   @id @map("_id") @default(uuid())
+  id        String   @id @default(uuid()) @map("_id")
   title     String
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    String   @map("_userId")
   user      user     @relation(fields: [userId], references: [id])
+}
+
+enum userRoles {
+  USER
+  ADMIN
 }
